@@ -9,7 +9,7 @@
     "node": ">=16 <17"
   },
   "scripts": {
-    "bot": "node index.js"
+    "bot": "node --experimental-specifier-resolution=node index.js"
   },
   "dependencies": {
     "@ethersproject/providers": "^5.7.1",
