@@ -119,13 +119,13 @@ const recastNewUsers = async () => {
   const provider = new AlchemyProvider('goerli')
   const wallet = process.env.FARCASTER_SEED_PHRASE
     ? Wallet.fromMnemonic(process.env.FARCASTER_SEED_PHRASE)
-    : ''
+    : null
 
   const latestSequences = getLatestSequenceRecastedPerAddress()
   console.log(
     `Found ${
       Object.keys(latestSequences).length
-    } users @ncbot recasted in the past ${RECAST_FOR_USER_HR} hours.`
+    } users recasted in the past ${RECAST_FOR_USER_HR} hours.`
   )
 
   for (const user of users) {
@@ -135,13 +135,13 @@ const recastNewUsers = async () => {
     const casts = await getCasts(user.address)
     const publishedAtThreshold = getTimeAgo(RECAST_FOR_CAST_HR)
     for (const cast of casts.result.casts.reverse()) {
-      const { body } = cast
+      const { body, meta } = cast
       const { address, data, publishedAt, sequence, username } = body
-      if (user.address.toLowerCase() !== address.toLowerCase()) {
+      if (meta.recast) {
         continue // Skip because recasts
       }
       if (publishedAt < publishedAtThreshold) {
-        continue // Skip if casted before the threshold to prevent recasting too many
+        continue // Skip if casted before the threshold
       }
       if (data.replyParentMerkleRoot) {
         continue // Skip replies

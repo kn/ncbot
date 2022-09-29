@@ -9,11 +9,11 @@
     "node": ">=16 <17"
   },
   "scripts": {
-    "bot": "node --experimental-specifier-resolution=node index.js"
+    "bot": "node index.js"
   },
   "dependencies": {
     "@ethersproject/providers": "^5.7.1",
-    "@standard-crypto/farcaster-js": "^3.0.3",
+    "@standard-crypto/farcaster-js": "https://github.com/kn/farcaster-jss",
     "@supabase/supabase-js": "^1.35.6",
     "ethers": "^5.7.1",
     "node-fetch": "^3.2.10"

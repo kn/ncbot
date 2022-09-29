@@ -480,10 +480,9 @@
     "@stablelib/wipe" "^1.0.1"
     "@stablelib/xchacha20" "^1.0.1"
 
-"@standard-crypto/farcaster-js@^3.0.3":
+"@standard-crypto/farcaster-js@https://github.com/kn/farcaster-jss":
   version "3.0.3"
-  resolved "https://registry.yarnpkg.com/@standard-crypto/farcaster-js/-/farcaster-js-3.0.3.tgz#7ee1589a15e1411105e9a81b003e93ac80001587"
-  integrity sha512-FZ3jXMH6P59WVaXBdDqb320H6w+4VdmFT9KjUaOTWISNZyiSxx9PGfFPwISHekYynuYb117s2hS22o/cQJw3/w==
+  resolved "https://github.com/kn/farcaster-jss#76efe5c2a1b20b9e3f12bd619e104e1bdb9cb9f6"
   dependencies:
     axios "^0.27.0"
     did-jwt "^5.7.0"
