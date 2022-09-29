@@ -12,7 +12,7 @@ const READ_ONLY_SUPABASE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtwd2JnbHB4anVoaXF0Z3R2ZW56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NTgzNzg2MjEsImV4cCI6MTk3Mzk1NDYyMX0.zecokpSRK0MI_nOaSAgFZJCMkPSpEXraPKqQD5fogE4'
 const supabase = createClient(SUPABASE_URL, READ_ONLY_SUPABASE_KEY)
 
-const NCBOT_ADDRESS = '0x4E9c142eE16e45FFB32Ece493b8e00E8Eeb47260'
+const NCBOT_ADDRESS = '0xb79aF3B13F54c0739F0183f1207F7AB80EDd40DE'
 const RECAST_PREFIX = 'recast:farcaster://casts/'
 
 // We recast new users for 3 days.
@@ -121,19 +121,19 @@ const recastNewUsers = async () => {
     ? Wallet.fromMnemonic(process.env.FARCASTER_SEED_PHRASE)
     : null
 
-  const latestSequences = getLatestSequenceRecastedPerAddress()
+  const latestSequences = await getLatestSequenceRecastedPerAddress()
   console.log(
     `Found ${
       Object.keys(latestSequences).length
     } users recasted in the past ${RECAST_FOR_USER_HR} hours.`
   )
 
+  const publishedAtThreshold = getTimeAgo(RECAST_FOR_CAST_HR)
   for (const user of users) {
     if (user.username.startsWith('__tt__')) {
       continue // Skip test users
     }
     const casts = await getCasts(user.address)
-    const publishedAtThreshold = getTimeAgo(RECAST_FOR_CAST_HR)
     for (const cast of casts.result.casts.reverse()) {
       const { body, meta } = cast
       const { address, data, publishedAt, sequence, username } = body
