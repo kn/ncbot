@@ -124,9 +124,7 @@ const publishCast = async (privateKey, text, replyTo) => {
     text,
     replyTo,
   })
-  console.log(unsignedCast)
   const signedCast = await Farcaster.signCast(unsignedCast, signer)
-  console.log(signedCast)
   await contentHost.publishCast(signedCast)
   return signedCast
 }
