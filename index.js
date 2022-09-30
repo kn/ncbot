@@ -20,9 +20,11 @@ const RECAST_PREFIX = 'recast:farcaster://casts/'
 
 // We recast new users for 3 days.
 const RECAST_FOR_USER_HR = 72
+// We recast up to 10 casts per user.
+const MAX_RECAST_PER_USER = 10
 
 // We recast new casts posted up to 1 hour ago.
-const RECAST_FOR_CAST_HR = 2
+const RECAST_FOR_CAST_HR = 1
 
 /*
  * Helper functions
@@ -78,6 +80,7 @@ const getCasts = async (address) => {
 
 const getLatestSequenceRecastedPerAddress = async () => {
   const latestSequences = {}
+  const recastCounts = {}
   const publishedThreshold = getTimeAgo(RECAST_FOR_USER_HR)
   let casts = await getCasts(NCBOT_ADDRESS)
   let passedThreshold = false
@@ -89,6 +92,8 @@ const getLatestSequenceRecastedPerAddress = async () => {
         passedThreshold = true
         break
       }
+      recastCounts[body.address] ||= 0
+      recastCounts[body.address]++
       if (
         !latestSequences[body.address] ||
         latestSequences[body.address] < body.sequence
@@ -105,7 +110,7 @@ const getLatestSequenceRecastedPerAddress = async () => {
       break
     }
   } while (true)
-  return latestSequences
+  return { latestSequences, recastCounts }
 }
 
 // From @greg: https://gist.github.com/gskril/ffaa16540c35c05a2ae20c70237bd94d
@@ -148,7 +153,8 @@ const recastNewUsers = async () => {
 
   const privateKey = getPrivateKey()
 
-  const latestSequences = await getLatestSequenceRecastedPerAddress()
+  const { latestSequences, recastCounts } =
+    await getLatestSequenceRecastedPerAddress()
   console.log(
     `Found ${
       Object.keys(latestSequences).length
@@ -159,6 +165,9 @@ const recastNewUsers = async () => {
   for (const user of users) {
     if (user.username.startsWith('__tt__')) {
       continue // Skip test users
+    }
+    if (recastCounts[user.address] >= MAX_RECAST_PER_USER) {
+      continue // Skip because exceeded max recasts
     }
     const casts = await getCasts(user.address)
     for (const cast of casts.result.casts.reverse()) {
