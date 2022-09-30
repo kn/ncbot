@@ -193,7 +193,7 @@
   dependencies:
     "@ethersproject/logger" "^5.7.0"
 
-"@ethersproject/providers@5.7.1", "@ethersproject/providers@^5.7.1":
+"@ethersproject/providers@5.7.1":
   version "5.7.1"
   resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.7.1.tgz#b0799b616d5579cd1067a8ebf1fc1ec74c1e122c"
   integrity sha512-vZveG/DLyo+wk4Ga1yx6jSEHrLPgmTt+dFv0dv8URpVCRf0jVhalps1jq/emN/oXnMRsC7cQgAF32DcXLL7BPQ==
@@ -480,13 +480,15 @@
     "@stablelib/wipe" "^1.0.1"
     "@stablelib/xchacha20" "^1.0.1"
 
-"@standard-crypto/farcaster-js@https://github.com/kn/farcaster-jss":
-  version "3.0.3"
-  resolved "https://github.com/kn/farcaster-jss#76efe5c2a1b20b9e3f12bd619e104e1bdb9cb9f6"
+"@standard-crypto/farcaster-js@2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@standard-crypto/farcaster-js/-/farcaster-js-2.0.2.tgz#eb58e991fa933b70dc7c7627b069e0c4483d3f62"
+  integrity sha512-+rBJkQzwgk8lWgabcY+pmib4De7juRNfeosnj/QMiY44ZEKx687JgU8ycIfSuXoEnj14jMT+ziNZjHfaz+nj1A==
   dependencies:
-    axios "^0.27.0"
+    axios "^0.26.1"
     did-jwt "^5.7.0"
-    ethers "^5.7.1"
+    ethers "^5.6.2"
+    simple-github-gist-api "^2.0.59"
 
 "@supabase/functions-js@^1.3.4":
   version "1.3.4"
@@ -550,7 +552,14 @@ asynckit@^0.4.0:
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
   integrity sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==
 
-axios@^0.27.0:
+axios@^0.26.1:
+  version "0.26.1"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.26.1.tgz#1ede41c51fcf51bbbd6fd43669caaa4f0495aaa9"
+  integrity sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==
+  dependencies:
+    follow-redirects "^1.14.8"
+
+axios@^0.27.1:
   version "0.27.2"
   resolved "https://registry.yarnpkg.com/axios/-/axios-0.27.2.tgz#207658cc8621606e586c85db4b41a750e756d972"
   integrity sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==
@@ -696,7 +705,7 @@ es6-symbol@^3.1.1, es6-symbol@^3.1.3:
     d "^1.0.1"
     ext "^1.1.2"
 
-ethers@^5.7.1:
+ethers@^5.6.2, ethers@^5.7.1:
   version "5.7.1"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.7.1.tgz#48c83a44900b5f006eb2f65d3ba6277047fd4f33"
   integrity sha512-5krze4dRLITX7FpU8J4WscXqADiKmyeNlylmmDLbS95DaZpBhDe2YSwRQwKXWNyXcox7a3gBgm/MkGXV1O1S/Q==
@@ -747,7 +756,7 @@ fetch-blob@^3.1.2, fetch-blob@^3.1.4:
     node-domexception "^1.0.0"
     web-streams-polyfill "^3.0.3"
 
-follow-redirects@^1.14.9:
+follow-redirects@^1.14.8, follow-redirects@^1.14.9:
   version "1.15.2"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
   integrity sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==
@@ -867,6 +876,13 @@ scrypt-js@3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/scrypt-js/-/scrypt-js-3.0.1.tgz#d314a57c2aef69d1ad98a138a21fe9eafa9ee312"
   integrity sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==
+
+simple-github-gist-api@^2.0.59:
+  version "2.0.123"
+  resolved "https://registry.yarnpkg.com/simple-github-gist-api/-/simple-github-gist-api-2.0.123.tgz#accff337f280ca72d75917db29e8dec714cd3fe2"
+  integrity sha512-SLPABqE2MXG5jxCQ+iuxEJkEn1KRFhfgHQKqsVtscyD/bHYu+8MOXg8+oiZcptIPaAPizGrucaq2FP/SS9a1+w==
+  dependencies:
+    axios "^0.27.1"
 
 tr46@~0.0.3:
   version "0.0.3"

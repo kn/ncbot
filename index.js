@@ -1,7 +1,9 @@
-import { Wallet } from 'ethers'
+import { ethers, Wallet } from 'ethers'
 import fetch from 'node-fetch'
-import { AlchemyProvider } from '@ethersproject/providers'
-import { publishCast } from '@standard-crypto/farcaster-js'
+import {
+  Farcaster,
+  FarcasterGuardianContentHost,
+} from '@standard-crypto/farcaster-js'
 import { createClient } from '@supabase/supabase-js'
 
 /*
@@ -12,6 +14,7 @@ const READ_ONLY_SUPABASE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtwd2JnbHB4anVoaXF0Z3R2ZW56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NTgzNzg2MjEsImV4cCI6MTk3Mzk1NDYyMX0.zecokpSRK0MI_nOaSAgFZJCMkPSpEXraPKqQD5fogE4'
 const supabase = createClient(SUPABASE_URL, READ_ONLY_SUPABASE_KEY)
 
+const NCBOT_USERNAME = 'ncbot'
 const NCBOT_ADDRESS = '0xb79aF3B13F54c0739F0183f1207F7AB80EDd40DE'
 const RECAST_PREFIX = 'recast:farcaster://casts/'
 
@@ -19,7 +22,7 @@ const RECAST_PREFIX = 'recast:farcaster://casts/'
 const RECAST_FOR_USER_HR = 72
 
 // We recast new casts posted up to 1 hour ago.
-const RECAST_FOR_CAST_HR = 1
+const RECAST_FOR_CAST_HR = 2
 
 /*
  * Helper functions
@@ -105,6 +108,33 @@ const getLatestSequenceRecastedPerAddress = async () => {
   return latestSequences
 }
 
+// From @greg: https://gist.github.com/gskril/ffaa16540c35c05a2ae20c70237bd94d
+const defaultFarcaster = new Farcaster()
+
+const publishCast = async (privateKey, text, replyTo) => {
+  const contentHost = new FarcasterGuardianContentHost(privateKey)
+  const signer = new Wallet(privateKey)
+  const unsignedCast = await defaultFarcaster.prepareCast({
+    fromUsername: NCBOT_USERNAME,
+    text,
+    replyTo,
+  })
+  console.log(unsignedCast)
+  const signedCast = await Farcaster.signCast(unsignedCast, signer)
+  console.log(signedCast)
+  await contentHost.publishCast(signedCast)
+  return signedCast
+}
+
+const getPrivateKey = () => {
+  const mnemonic = process.env.FARCASTER_SEED_PHRASE
+  if (!mnemonic) return null
+
+  const hdNode =
+    ethers.utils.HDNode.fromMnemonic(mnemonic).derivePath("m/44'/60'/0'/0/0")
+  return hdNode.privateKey
+}
+
 /*
  * Main function
  */
@@ -116,10 +146,7 @@ const recastNewUsers = async () => {
 
   if (!users.length) return
 
-  const provider = new AlchemyProvider('goerli')
-  const wallet = process.env.FARCASTER_SEED_PHRASE
-    ? Wallet.fromMnemonic(process.env.FARCASTER_SEED_PHRASE)
-    : null
+  const privateKey = getPrivateKey()
 
   const latestSequences = await getLatestSequenceRecastedPerAddress()
   console.log(
@@ -155,8 +182,9 @@ const recastNewUsers = async () => {
       if (data.text.startsWith('Authenticating my Farcaster account')) {
         continue // Skip auth casts
       }
-      wallet &&
-        (await publishCast(wallet, provider, RECAST_PREFIX + cast.merkleRoot))
+      privateKey &&
+        (await publishCast(privateKey, RECAST_PREFIX + cast.merkleRoot))
+      console.log('')
       console.log(`Recasted @${username}: ${data.text}`)
     }
   }
