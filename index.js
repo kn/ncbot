@@ -26,6 +26,11 @@ const MAX_RECAST_PER_USER = 10
 // We recast new casts posted up to 1 hour ago.
 const RECAST_FOR_CAST_HR = 1
 
+// Skip users in this list
+const USERNAMES_TO_SKIP = [
+  'welcome', // Requested by @zachterrell
+]
+
 /*
  * Helper functions
  */
@@ -163,6 +168,9 @@ const recastNewUsers = async () => {
   for (const user of users) {
     if (user.username.startsWith('__tt__')) {
       continue // Skip test users
+    }
+    if (USERNAMES_TO_SKIP.includes(user.username)) {
+      continue
     }
     if (recastCounts[user.address] >= MAX_RECAST_PER_USER) {
       continue // Skip because exceeded max recasts
