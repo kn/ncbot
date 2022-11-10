@@ -21,7 +21,7 @@ const RECAST_PREFIX = 'recast:farcaster://casts/'
 // We recast new users for 3 days.
 const RECAST_FOR_USER_HR = 72
 // We recast up to 10 casts per user.
-const MAX_RECAST_PER_USER = 10
+const MAX_RECAST_PER_USER = 5
 
 // We recast new casts posted up to 1 hour ago.
 const RECAST_FOR_CAST_HR = 1
@@ -173,10 +173,21 @@ const recastNewUsers = async () => {
       continue
     }
     if (recastCounts[user.address] >= MAX_RECAST_PER_USER) {
+      console.log(
+        `Skipping ${user.username} because casted more than ${MAX_RECAST_PER_USER} times already.`
+      )
       continue // Skip because exceeded max recasts
     }
     const casts = await getCasts(user.address)
+    let recastCount = recastCounts[user.address]
     for (const cast of casts.result.casts.reverse()) {
+      if (recastCount > MAX_RECAST_PER_USER) {
+        console.log(
+          `Skipping the rest of ${user.username}'s casts since recasted ${MAX_RECAST_PER_USER} times already.`
+        )
+        break
+      }
+
       const { body, meta } = cast
       const { address, data, publishedAt, sequence, username } = body
       if (meta.recast) {
@@ -199,6 +210,7 @@ const recastNewUsers = async () => {
       }
       privateKey &&
         (await publishCast(privateKey, RECAST_PREFIX + cast.merkleRoot))
+      recastCount++
       console.log('')
       console.log(`Recasted @${username}: ${data.text}`)
     }
