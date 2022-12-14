@@ -1,9 +1,6 @@
 import { ethers, Wallet } from 'ethers'
 import fetch from 'node-fetch'
-import {
-  Farcaster,
-  FarcasterGuardianContentHost,
-} from '@standard-crypto/farcaster-js'
+import { publishCast } from '@standard-crypto/farcaster-js'
 import { createClient } from '@supabase/supabase-js'
 
 /*
@@ -118,22 +115,6 @@ const getLatestSequenceRecastedPerAddress = async () => {
   return { latestSequences, recastCounts }
 }
 
-// From @greg: https://gist.github.com/gskril/ffaa16540c35c05a2ae20c70237bd94d
-const defaultFarcaster = new Farcaster()
-
-const publishCast = async (privateKey, text, replyTo) => {
-  const contentHost = new FarcasterGuardianContentHost(privateKey)
-  const signer = new Wallet(privateKey)
-  const unsignedCast = await defaultFarcaster.prepareCast({
-    fromUsername: NCBOT_USERNAME,
-    text,
-    replyTo,
-  })
-  const signedCast = await Farcaster.signCast(unsignedCast, signer)
-  await contentHost.publishCast(signedCast)
-  return signedCast
-}
-
 const getPrivateKey = () => {
   const mnemonic = process.env.FARCASTER_SEED_PHRASE
   if (!mnemonic) return null
@@ -155,6 +136,7 @@ const recastNewUsers = async () => {
   if (!users.length) return
 
   const privateKey = getPrivateKey()
+  const signer = privateKey && new Wallet(privateKey)
 
   const { latestSequences, recastCounts } =
     await getLatestSequenceRecastedPerAddress()
@@ -208,8 +190,7 @@ const recastNewUsers = async () => {
       if (data.text.startsWith('Authenticating my Farcaster account')) {
         continue // Skip auth casts
       }
-      privateKey &&
-        (await publishCast(privateKey, RECAST_PREFIX + cast.merkleRoot))
+      signer && (await publishCast(signer, RECAST_PREFIX + cast.merkleRoot))
       recastCount++
       console.log('')
       console.log(`Recasted @${username}: ${data.text}`)
