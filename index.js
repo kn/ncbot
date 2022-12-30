@@ -118,7 +118,7 @@ const getLatestSequenceRecastedPerAddress = async () => {
       break
     }
     if (next && next.cursor) {
-      casts = await getCasts(NCBOT_FID, next.cursor)
+      casts = await getCasts(author.fid, next.cursor)
     } else {
       break
     }
@@ -170,7 +170,7 @@ const recastNewUsers = async () => {
       )
       continue // Skip because exceeded max recasts
     }
-    const casts = await getCasts(NCBOT_FID)
+    const casts = await getCasts(user.fid)
     let recastCount = recastCounts[user.fid]
     for (const cast of casts.result.casts.reverse()) {
       if (recastCount > MAX_RECAST_PER_USER) {
