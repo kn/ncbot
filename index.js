@@ -130,7 +130,7 @@ const getPrivateKey = () => {
   const mnemonic = process.env.FARCASTER_SEED_PHRASE
   if (!mnemonic) return null
 
-  const hdNode =
+  const hdNode 
     ethers.utils.HDNode.fromMnemonic(mnemonic).derivePath("m/44'/60'/0'/0/0")
   return hdNode.privateKey
 }
@@ -173,7 +173,7 @@ const recastNewUsers = async () => {
     }
     const casts = await getCasts(NCBOT_FID)
     let recastCount = recastCounts[user.fid]
-    for (const cast of casts.result.casts) {
+    for (const cast of casts.result.casts.reverse()) {
       if (recastCount > MAX_RECAST_PER_USER) {
         console.log(
           `Skipping the rest of ${user.username}'s casts since recasted ${MAX_RECAST_PER_USER} times already.`
