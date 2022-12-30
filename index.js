@@ -170,7 +170,7 @@ const recastNewUsers = async () => {
       )
       continue // Skip because exceeded max recasts
     }
-    const casts = await getCasts(user.fid)
+    const casts = await getCasts(NCBOT_FID)
     let recastCount = recastCounts[user.fid]
     for (const cast of casts.result.casts.reverse()) {
       if (recastCount > MAX_RECAST_PER_USER) {
