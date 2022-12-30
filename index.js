@@ -118,7 +118,7 @@ const getLatestSequenceRecastedPerAddress = async () => {
       break
     }
     if (next && next.cursor) {
-      casts = await getCasts(author.fid, next.cursor)
+      casts = await getCasts(NCBOT_FID, next.cursor)
     } else {
       break
     }
