@@ -13,7 +13,7 @@ const READ_ONLY_SUPABASE_KEY =
 const supabase = createClient(SUPABASE_URL, READ_ONLY_SUPABASE_KEY)
 const NCBOT_USERNAME = 'ncbot'
 const RECAST_PREFIX = 'recast:farcaster://casts/'
-const NCBOT_FID = 258
+const NCBOT_FID = 1026
 
 // We recast new users for 3 days.
 const RECAST_FOR_USER_HR = 72
@@ -46,7 +46,7 @@ const getEntryCreatedAtThreshold = () => {
 const getNewUsers = async () => {
   const { data, error } = await supabase
     .from('account_view')
-    .select('username, address')
+    .select('username,fid')
     .gt('entry_created_at', getEntryCreatedAtThreshold())
 
   if (error) {
@@ -167,7 +167,7 @@ const recastNewUsers = async () => {
       )
       continue // Skip because exceeded max recasts
     }
-    const casts = await getCasts(NCBOT_FID)
+    const casts = await getCasts(user.fid)
     let recastCount = recastCounts[user.fid]
     for (const cast of casts.result.casts.reverse()) {
       if (recastCount > MAX_RECAST_PER_USER) {
@@ -177,8 +177,8 @@ const recastNewUsers = async () => {
         break
       }
 
-      const { hash, timestamp, recasts, parentHash, text, author } = cast
-      if (recasts?.count) {
+      const { hash, timestamp, parentHash, text, author } = cast
+      if (cast.recast) {
         continue // Skip because recasts
       }
       if (timestamp < publishedAtThreshold) {
@@ -189,7 +189,7 @@ const recastNewUsers = async () => {
       }
       if (
         latestSequences[author.fid] !== undefined &&
-        sequence <= latestSequences[author.fid]
+        timestamp <= latestSequences[author.fid]
       ) {
         continue // Skip if already recasted by ncbot
       }
