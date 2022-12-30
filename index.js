@@ -10,9 +10,7 @@ const SUPABASE_URL = 'https://kpwbglpxjuhiqtgtvenz.supabase.co'
 const READ_ONLY_SUPABASE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtwd2JnbHB4anVoaXF0Z3R2ZW56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NTgzNzg2MjEsImV4cCI6MTk3Mzk1NDYyMX0.zecokpSRK0MI_nOaSAgFZJCMkPSpEXraPKqQD5fogE4'
 const supabase = createClient(SUPABASE_URL, READ_ONLY_SUPABASE_KEY)
-
 const NCBOT_USERNAME = 'ncbot'
-const NCBOT_ADDRESS = '0xb79aF3B13F54c0739F0183f1207F7AB80EDd40DE'
 const RECAST_PREFIX = 'recast:farcaster://casts/'
 
 // We recast new users for 3 days.
@@ -74,9 +72,9 @@ const fetchWithLog = async (url) => {
   }
 }
 
-const getCasts = async (address) => {
+const getCasts = async (username) => {
   return await fetchWithLog(
-    `https://api.farcaster.xyz/v1/profiles/${address}/casts`
+    `https://searchcaster.xyz/api/search?username=${username}`
   )
 }
 
@@ -84,11 +82,11 @@ const getLatestSequenceRecastedPerAddress = async () => {
   const latestSequences = {}
   const recastCounts = {}
   const publishedThreshold = getTimeAgo(RECAST_FOR_USER_HR)
-  let casts = await getCasts(NCBOT_ADDRESS)
+  let botCasts = await getCasts(NCBOT_USERNAME)
   let passedThreshold = false
   do {
-    const { result, meta } = casts
-    for (const cast of result.casts) {
+    const { casts, meta } = botCasts
+    for (const cast of casts) {
       const { body } = cast
       if (body.publishedAt < publishedThreshold) {
         passedThreshold = true
@@ -160,9 +158,9 @@ const recastNewUsers = async () => {
       )
       continue // Skip because exceeded max recasts
     }
-    const casts = await getCasts(user.address)
-    let recastCount = recastCounts[user.address]
-    for (const cast of casts.result.casts.reverse()) {
+    const userCasts = await getCasts(user.username)
+    let recastCount = recastCounts[user.username]
+    for (const cast of userCasts.casts.reverse()) {
       if (recastCount > MAX_RECAST_PER_USER) {
         console.log(
           `Skipping the rest of ${user.username}'s casts since recasted ${MAX_RECAST_PER_USER} times already.`
@@ -182,8 +180,8 @@ const recastNewUsers = async () => {
         continue // Skip replies
       }
       if (
-        latestSequences[address] !== undefined &&
-        sequence <= latestSequences[address]
+        latestSequences[username] !== undefined &&
+        sequence <= latestSequences[username]
       ) {
         continue // Skip if already recasted by ncbot
       }
