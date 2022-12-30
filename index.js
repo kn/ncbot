@@ -2,7 +2,8 @@ import { ethers, Wallet } from 'ethers'
 import fetch from 'node-fetch'
 import { publishCast } from '@standard-crypto/farcaster-js'
 import { createClient } from '@supabase/supabase-js'
-
+import * as dotenv from 'dotenv'
+dotenv.config()
 /*
  * Constants
  */
@@ -12,6 +13,7 @@ const READ_ONLY_SUPABASE_KEY =
 const supabase = createClient(SUPABASE_URL, READ_ONLY_SUPABASE_KEY)
 const NCBOT_USERNAME = 'ncbot'
 const RECAST_PREFIX = 'recast:farcaster://casts/'
+const NCBOT_FID = 258
 
 // We recast new users for 3 days.
 const RECAST_FOR_USER_HR = 72
@@ -59,8 +61,13 @@ const getNewUsers = async () => {
  * Farcaster API helper functions
  */
 const fetchWithLog = async (url) => {
+  const token = process.env.FARCASTER_BEARER_TOKEN
+  const headers =  {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${process.env.MERKLE_HUB_KEY}`
+  }
   try {
-    const res = await fetch(url)
+    const res = await fetch(url,{headers})
     if (!res.ok) {
       console.warn(`Could not fetch ${url}: ${res.statusText}`)
       return null
@@ -72,9 +79,13 @@ const fetchWithLog = async (url) => {
   }
 }
 
-const getCasts = async (username) => {
+const getCasts = async (fid, cursor) => {
+  let url = `https://api.farcaster.xyz/v2/casts?fid=${fid}`
+  if(cursor) {
+    url = url + `&cursor=${cursor}`
+  }
   return await fetchWithLog(
-    `https://searchcaster.xyz/api/search?username=${username}`
+  url
   )
 }
 
@@ -82,30 +93,32 @@ const getLatestSequenceRecastedPerAddress = async () => {
   const latestSequences = {}
   const recastCounts = {}
   const publishedThreshold = getTimeAgo(RECAST_FOR_USER_HR)
-  let botCasts = await getCasts(NCBOT_USERNAME)
+  let botCasts = await getCasts(NCBOT_FID)
+  let result = botCasts.result
   let passedThreshold = false
   do {
-    const { casts, meta } = botCasts
+    const { casts, next } = result
     for (const cast of casts) {
-      const { body } = cast
-      if (body.publishedAt < publishedThreshold) {
+      const { hash, timestamp, recasts, parentHash, text,author } = cast
+      if (timestamp < publishedThreshold) {
         passedThreshold = true
         break
       }
-      recastCounts[body.address] ||= 0
-      recastCounts[body.address]++
+      recastCounts[author.fid] ||= 0
+      recastCounts[author.fid]++
       if (
-        !latestSequences[body.address] ||
-        latestSequences[body.address] < body.sequence
+        !latestSequences[author.fid] ||
+        latestSequences[author.fid] < timestamp
       ) {
-        latestSequences[body.address] = body.sequence
+        latestSequences[author.fid] = timestamp
       }
+   
     }
     if (passedThreshold) {
       break
     }
-    if (meta.next) {
-      casts = await fetchWithLog(meta.next)
+    if (next && next.cursor) {
+      casts = await getCasts(NCBOT_FID, next.cursor)
     } else {
       break
     }
@@ -152,15 +165,15 @@ const recastNewUsers = async () => {
     if (USERNAMES_TO_SKIP.includes(user.username)) {
       continue
     }
-    if (recastCounts[user.address] >= MAX_RECAST_PER_USER) {
+    if (recastCounts[user.fid] >= MAX_RECAST_PER_USER) {
       console.log(
         `Skipping ${user.username} because casted more than ${MAX_RECAST_PER_USER} times already.`
       )
       continue // Skip because exceeded max recasts
     }
-    const userCasts = await getCasts(user.username)
-    let recastCount = recastCounts[user.username]
-    for (const cast of userCasts.casts.reverse()) {
+    const casts = await getCasts(NCBOT_FID)
+    let recastCount = recastCounts[user.fid]
+    for (const cast of casts.result.casts) {
       if (recastCount > MAX_RECAST_PER_USER) {
         console.log(
           `Skipping the rest of ${user.username}'s casts since recasted ${MAX_RECAST_PER_USER} times already.`
@@ -168,15 +181,14 @@ const recastNewUsers = async () => {
         break
       }
 
-      const { body, meta } = cast
-      const { address, data, publishedAt, sequence, username } = body
-      if (meta.recast) {
+      const { hash, timestamp, recasts, parentHash, text } = cast
+      if (recasts?.count) {
         continue // Skip because recasts
       }
-      if (publishedAt < publishedAtThreshold) {
+      if (timestamp < publishedAtThreshold) {
         continue // Skip if casted before the threshold
       }
-      if (data.replyParentMerkleRoot) {
+      if (parentHash) {
         continue // Skip replies
       }
       if (
@@ -185,13 +197,13 @@ const recastNewUsers = async () => {
       ) {
         continue // Skip if already recasted by ncbot
       }
-      if (data.text.startsWith('Authenticating my Farcaster account')) {
+      if (text.startsWith('Authenticating my Farcaster account')) {
         continue // Skip auth casts
       }
-      signer && (await publishCast(signer, RECAST_PREFIX + cast.merkleRoot))
+      signer && (await publishCast(signer, RECAST_PREFIX + hash))
       recastCount++
       console.log('')
-      console.log(`Recasted @${username}: ${data.text}`)
+      console.log(`Recasted @${username}: ${text}`)
     }
   }
 
