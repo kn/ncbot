@@ -180,7 +180,7 @@ const recastNewUsers = async () => {
         break
       }
 
-      const { hash, timestamp, recasts, parentHash, text } = cast
+      const { hash, timestamp, recasts, parentHash, text,author } = cast
       if (recasts?.count) {
         continue // Skip because recasts
       }
@@ -191,8 +191,8 @@ const recastNewUsers = async () => {
         continue // Skip replies
       }
       if (
-        latestSequences[username] !== undefined &&
-        sequence <= latestSequences[username]
+        latestSequences[author.fid] !== undefined &&
+        sequence <= latestSequences[author.fid]
       ) {
         continue // Skip if already recasted by ncbot
       }
