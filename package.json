@@ -12,8 +12,9 @@
     "bot": "node index.js"
   },
   "dependencies": {
-    "@standard-crypto/farcaster-js": "^5.2.0",
+    "@standard-crypto/farcaster-js": "^5.4.0",
     "@supabase/supabase-js": "^1.35.6",
+    "dotenv": "^16.0.3",
     "ethers": "^5.7.1",
     "node-fetch": "^3.2.10"
   }
