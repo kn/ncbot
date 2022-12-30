@@ -170,14 +170,13 @@ const recastNewUsers = async () => {
     const casts = await getCasts(user.fid)
     let recastCount = recastCounts[user.fid]
     for (const cast of casts.result.casts.reverse()) {
+      const { hash, timestamp, parentHash, text, author } = cast
       if (recastCount > MAX_RECAST_PER_USER) {
         console.log(
           `Skipping the rest of ${user.username}'s casts since recasted ${MAX_RECAST_PER_USER} times already.`
         )
         break
       }
-
-      const { hash, timestamp, parentHash, text, author } = cast
       if (cast.recast) {
         continue // Skip because recasts
       }
@@ -199,7 +198,7 @@ const recastNewUsers = async () => {
       signer && (await publishCast(signer, RECAST_PREFIX + hash))
       recastCount++
       console.log('')
-      console.log(`Recasted @${username}: ${text}`)
+      console.log(`Recasted @${author.username}: ${text}`)
     }
   }
 
