@@ -16,6 +16,7 @@ const RECAST_PREFIX = 'recast:farcaster://casts/'
 const NCBOT_FID = 1026
 const FARCASTER_BEARER_TOKEN = process.env.FARCASTER_BEARER_TOKEN || ''
 const FARCASTER_SEED_PHRASE = process.env.FARCASTER_SEED_PHRASE || ''
+const APP_ENV = process.env.APP_ENV || 'development'
 
 // We recast new users for 3 days.
 const RECAST_FOR_USER_HR = 72
@@ -46,7 +47,7 @@ const getEntryCreatedAtThreshold = () => {
 const getNewUsers = async () => {
   const { data, error } = await supabase
     .from('account_view')
-    .select('username,fid')
+    .select('username, fid')
     .gt('entry_created_at', getEntryCreatedAtThreshold())
 
   if (error) {
@@ -195,10 +196,16 @@ const recastNewUsers = async () => {
       if (text.startsWith('Authenticating my Farcaster account')) {
         continue // Skip auth casts
       }
-      signer && (await publishCast(signer, RECAST_PREFIX + hash))
+      if (APP_ENV === 'production') {
+        await publishCast(signer, RECAST_PREFIX + hash)
+        console.log(`Recasted @${author.username}: ${text}`)
+      } else {
+        console.log(
+          `[Test (not actually recasting)] @${author.username}: ${text}`
+        )
+      }
       recastCount++
       console.log('')
-      console.log(`Recasted @${author.username}: ${text}`)
     }
   }
 
