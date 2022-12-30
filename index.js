@@ -4,6 +4,7 @@ import { publishCast } from '@standard-crypto/farcaster-js'
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
 dotenv.config()
+
 /*
  * Constants
  */
@@ -11,18 +12,17 @@ const SUPABASE_URL = 'https://kpwbglpxjuhiqtgtvenz.supabase.co'
 const READ_ONLY_SUPABASE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtwd2JnbHB4anVoaXF0Z3R2ZW56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NTgzNzg2MjEsImV4cCI6MTk3Mzk1NDYyMX0.zecokpSRK0MI_nOaSAgFZJCMkPSpEXraPKqQD5fogE4'
 const supabase = createClient(SUPABASE_URL, READ_ONLY_SUPABASE_KEY)
-const NCBOT_USERNAME = 'ncbot'
 const RECAST_PREFIX = 'recast:farcaster://casts/'
 const NCBOT_FID = 1026
+const FARCASTER_BEARER_TOKEN = process.env.FARCASTER_BEARER_TOKEN || ''
+const FARCASTER_SEED_PHRASE = process.env.FARCASTER_SEED_PHRASE || ''
 
 // We recast new users for 3 days.
 const RECAST_FOR_USER_HR = 72
-// We recast up to 10 casts per user.
+// We recast up to x casts per user.
 const MAX_RECAST_PER_USER = 5
-
-// We recast new casts posted up to 1 hour ago.
+// We recast new casts posted up to x hour ago.
 const RECAST_FOR_CAST_HR = 1
-
 // Skip users in this list
 const USERNAMES_TO_SKIP = [
   'welcome', // Requested by @zachterrell
@@ -63,7 +63,7 @@ const getNewUsers = async () => {
 const fetchWithLog = async (url) => {
   const headers = {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${process.env.FARCASTER_BEARER_TOKEN}`,
+    Authorization: `Bearer ${FARCASTER_BEARER_TOKEN}`,
   }
   try {
     const res = await fetch(url, { headers })
@@ -123,7 +123,7 @@ const getLatestSequenceRecastedPerAddress = async () => {
 }
 
 const getPrivateKey = () => {
-  const mnemonic = process.env.FARCASTER_SEED_PHRASE
+  const mnemonic = FARCASTER_SEED_PHRASE
   if (!mnemonic) return null
 
   const hdNode =
