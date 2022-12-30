@@ -61,13 +61,12 @@ const getNewUsers = async () => {
  * Farcaster API helper functions
  */
 const fetchWithLog = async (url) => {
-  const token = process.env.FARCASTER_BEARER_TOKEN
-  const headers =  {
+  const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${process.env.FARCASTER_BEARER_TOKEN}`
+    Authorization: `Bearer ${process.env.FARCASTER_BEARER_TOKEN}`,
   }
   try {
-    const res = await fetch(url,{headers})
+    const res = await fetch(url, { headers })
     if (!res.ok) {
       console.warn(`Could not fetch ${url}: ${res.statusText}`)
       return null
@@ -81,12 +80,10 @@ const fetchWithLog = async (url) => {
 
 const getCasts = async (fid, cursor) => {
   let url = `https://api.farcaster.xyz/v2/casts?fid=${fid}`
-  if(cursor) {
+  if (cursor) {
     url = url + `&cursor=${cursor}`
   }
-  return await fetchWithLog(
-  url
-  )
+  return await fetchWithLog(url)
 }
 
 const getLatestSequenceRecastedPerAddress = async () => {
@@ -99,7 +96,7 @@ const getLatestSequenceRecastedPerAddress = async () => {
   do {
     const { casts, next } = result
     for (const cast of casts) {
-      const { hash, timestamp, recasts, parentHash, text,author } = cast
+      const { timestamp, author } = cast
       if (timestamp < publishedThreshold) {
         passedThreshold = true
         break
@@ -112,7 +109,6 @@ const getLatestSequenceRecastedPerAddress = async () => {
       ) {
         latestSequences[author.fid] = timestamp
       }
-   
     }
     if (passedThreshold) {
       break
@@ -130,7 +126,8 @@ const getPrivateKey = () => {
   const mnemonic = process.env.FARCASTER_SEED_PHRASE
   if (!mnemonic) return null
 
-  const hdNode = ethers.utils.HDNode.fromMnemonic(mnemonic).derivePath("m/44'/60'/0'/0/0")
+  const hdNode =
+    ethers.utils.HDNode.fromMnemonic(mnemonic).derivePath("m/44'/60'/0'/0/0")
   return hdNode.privateKey
 }
 
@@ -180,7 +177,7 @@ const recastNewUsers = async () => {
         break
       }
 
-      const { hash, timestamp, recasts, parentHash, text,author } = cast
+      const { hash, timestamp, recasts, parentHash, text, author } = cast
       if (recasts?.count) {
         continue // Skip because recasts
       }
