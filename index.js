@@ -130,8 +130,7 @@ const getPrivateKey = () => {
   const mnemonic = process.env.FARCASTER_SEED_PHRASE
   if (!mnemonic) return null
 
-  const hdNode 
-    ethers.utils.HDNode.fromMnemonic(mnemonic).derivePath("m/44'/60'/0'/0/0")
+  const hdNode = ethers.utils.HDNode.fromMnemonic(mnemonic).derivePath("m/44'/60'/0'/0/0")
   return hdNode.privateKey
 }
 
