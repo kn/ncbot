@@ -64,7 +64,7 @@ const fetchWithLog = async (url) => {
   const token = process.env.FARCASTER_BEARER_TOKEN
   const headers =  {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${process.env.MERKLE_HUB_KEY}`
+    'Authorization': `Bearer ${process.env.FARCASTER_BEARER_TOKEN}`
   }
   try {
     const res = await fetch(url,{headers})
