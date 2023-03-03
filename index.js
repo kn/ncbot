@@ -1,6 +1,6 @@
 import { ethers, Wallet } from 'ethers'
 import fetch from 'node-fetch'
-import { publishCast } from '@standard-crypto/farcaster-js'
+import { MerkleAPIClient } from '@standard-crypto/farcaster-js'
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
 dotenv.config()
@@ -12,11 +12,14 @@ const SUPABASE_URL = 'https://kpwbglpxjuhiqtgtvenz.supabase.co'
 const READ_ONLY_SUPABASE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtwd2JnbHB4anVoaXF0Z3R2ZW56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NTgzNzg2MjEsImV4cCI6MTk3Mzk1NDYyMX0.zecokpSRK0MI_nOaSAgFZJCMkPSpEXraPKqQD5fogE4'
 const supabase = createClient(SUPABASE_URL, READ_ONLY_SUPABASE_KEY)
-const RECAST_PREFIX = 'recast:farcaster://casts/'
+const RECAST_PREFIX = 'https://warpcast.com/'
 const NCBOT_FID = 1026
 const FARCASTER_BEARER_TOKEN = process.env.FARCASTER_BEARER_TOKEN || ''
 const FARCASTER_SEED_PHRASE = process.env.FARCASTER_SEED_PHRASE || ''
 const APP_ENV = process.env.APP_ENV || 'development'
+const warpcast = new MerkleAPIClient({
+  secret: FARCASTER_BEARER_TOKEN,
+})
 
 // We recast new users for 3 days.
 const RECAST_FOR_USER_HR = 72
@@ -80,7 +83,7 @@ const fetchWithLog = async (url) => {
 }
 
 const getCasts = async (fid, cursor) => {
-  let url = `https://api.farcaster.xyz/v2/casts?fid=${fid}`
+  let url = `https://api.warpcast.com/v2/casts?fid=${fid}`
   if (cursor) {
     url = url + `&cursor=${cursor}`
   }
@@ -171,7 +174,7 @@ const recastNewUsers = async () => {
     const casts = await getCasts(user.fid)
     let recastCount = recastCounts[user.fid]
     for (const cast of casts.result.casts.reverse()) {
-      const { hash, timestamp, parentHash, text, author } = cast
+      const { _hashV2, timestamp, _parentHashV2, text, author } = cast
       if (recastCount > MAX_RECAST_PER_USER) {
         console.log(
           `Skipping the rest of ${user.username}'s casts since recasted ${MAX_RECAST_PER_USER} times already.`
@@ -184,7 +187,7 @@ const recastNewUsers = async () => {
       if (timestamp < publishedAtThreshold) {
         continue // Skip if casted before the threshold
       }
-      if (parentHash) {
+      if (_parentHashV2) {
         continue // Skip replies
       }
       if (
@@ -197,9 +200,13 @@ const recastNewUsers = async () => {
         continue // Skip auth casts
       }
       if (APP_ENV === 'production') {
-        await publishCast(signer, RECAST_PREFIX + hash)
+        //await publishCast(signer, <removed>)
+        await warpcast.recast(_hashV2)
         console.log(`Recasted @${author.username}: ${text}`)
       } else {
+        //await getCast(_hashV2)
+        console.log(RECAST_PREFIX + author.username + '/' + _hashV2.slice(0, 8))
+
         console.log(
           `[Test (not actually recasting)] @${author.username}: ${text}`
         )
