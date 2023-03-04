@@ -80,7 +80,7 @@ const fetchWithLog = async (url) => {
 }
 
 const getCasts = async (fid, cursor) => {
-  let url = `https://api.warpcast.xyz/v2/casts?fid=${fid}`
+  let url = `https://api.warpcast.com/v2/casts?fid=${fid}`
   if (cursor) {
     url = url + `&cursor=${cursor}`
   }
