@@ -29,7 +29,7 @@ async function run() {
 
   const bearerToken = `eip191:${signature}`
 
-  const response = await fetch('https://api.farcaster.xyz/v2/auth', {
+  const response = await fetch('https://api.warpcast.xyz/v2/auth', {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

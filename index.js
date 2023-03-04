@@ -1,6 +1,6 @@
 import { ethers, Wallet } from 'ethers'
 import fetch from 'node-fetch'
-import { publishCast } from '@standard-crypto/farcaster-js'
+import { MerkleAPIClient} from '@standard-crypto/farcaster-js'
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
 dotenv.config()
@@ -80,7 +80,7 @@ const fetchWithLog = async (url) => {
 }
 
 const getCasts = async (fid, cursor) => {
-  let url = `https://api.farcaster.xyz/v2/casts?fid=${fid}`
+  let url = `https://api.warpcast.xyz/v2/casts?fid=${fid}`
   if (cursor) {
     url = url + `&cursor=${cursor}`
   }
@@ -145,6 +145,7 @@ const recastNewUsers = async () => {
 
   const privateKey = getPrivateKey()
   const signer = privateKey && new Wallet(privateKey)
+  const farcasterClient = new MerkleAPIClient(signer)
 
   const { latestSequences, recastCounts } =
     await getLatestSequenceRecastedPerAddress()
@@ -197,7 +198,7 @@ const recastNewUsers = async () => {
         continue // Skip auth casts
       }
       if (APP_ENV === 'production') {
-        await publishCast(signer, RECAST_PREFIX + hash)
+        await farcasterClient.recast(hash)
         console.log(`Recasted @${author.username}: ${text}`)
       } else {
         console.log(
