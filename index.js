@@ -39,6 +39,10 @@ const getTimeAgo = (hours) => {
   return new Date(now - hours * 60 * 60 * 1000).getTime()
 }
 
+const sleep = (seconds) => {
+  return new Promise((resolve) => setTimeout(resolve, seconds * 1000))
+}
+
 /*
  * Supabase helper functions
  */
@@ -145,6 +149,7 @@ const recastNewUsers = async () => {
   )
 
   const publishedAtThreshold = getTimeAgo(RECAST_FOR_CAST_HR)
+  let numUserFetched = 0
   for (const user of users) {
     if (user.username.startsWith('__tt__')) {
       continue // Skip test users
@@ -157,6 +162,12 @@ const recastNewUsers = async () => {
         `Skipping ${user.username} because casted more than ${MAX_RECAST_PER_USER} times already.`
       )
       continue // Skip because exceeded max recasts
+    }
+    numUserFetched++
+    // Sleep for 60 seconds every 100 users to avoid rate limit
+    if (numUserFetched % 100 === 0) {
+      console.log('Sleeping for 60 seconds to avoid rate limit...')
+      await sleep(60)
     }
     const casts = await getCasts(user.fid)
     let recastCount = recastCounts[user.fid]
