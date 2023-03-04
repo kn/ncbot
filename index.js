@@ -15,7 +15,6 @@ const supabase = createClient(SUPABASE_URL, READ_ONLY_SUPABASE_KEY)
 const RECAST_PREFIX = 'https://warpcast.com/'
 const NCBOT_FID = 1026
 const FARCASTER_BEARER_TOKEN = process.env.FARCASTER_BEARER_TOKEN || ''
-const FARCASTER_SEED_PHRASE = process.env.FARCASTER_SEED_PHRASE || ''
 const APP_ENV = process.env.APP_ENV || 'development'
 const warpcast = new MerkleAPIClient({
   secret: FARCASTER_BEARER_TOKEN,
@@ -126,15 +125,6 @@ const getLatestSequenceRecastedPerAddress = async () => {
   return { latestSequences, recastCounts }
 }
 
-const getPrivateKey = () => {
-  const mnemonic = FARCASTER_SEED_PHRASE
-  if (!mnemonic) return null
-
-  const hdNode =
-    ethers.utils.HDNode.fromMnemonic(mnemonic).derivePath("m/44'/60'/0'/0/0")
-  return hdNode.privateKey
-}
-
 /*
  * Main function
  */
@@ -145,9 +135,6 @@ const recastNewUsers = async () => {
   )
 
   if (!users.length) return
-
-  const privateKey = getPrivateKey()
-  const signer = privateKey && new Wallet(privateKey)
 
   const { latestSequences, recastCounts } =
     await getLatestSequenceRecastedPerAddress()
@@ -200,11 +187,9 @@ const recastNewUsers = async () => {
         continue // Skip auth casts
       }
       if (APP_ENV === 'production') {
-        //await publishCast(signer, <removed>)
         await warpcast.recast(_hashV2)
         console.log(`Recasted @${author.username}: ${text}`)
       } else {
-        //await getCast(_hashV2)
         console.log(RECAST_PREFIX + author.username + '/' + _hashV2.slice(0, 8))
 
         console.log(
