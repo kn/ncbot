@@ -172,7 +172,7 @@ const recastNewUsers = async () => {
     const casts = await getCasts(user.fid)
     let recastCount = recastCounts[user.fid]
     for (const cast of casts.result.casts.reverse()) {
-      const { _hashV2, timestamp, _parentHashV2, text, author } = cast
+      const { hash, timestamp, parentHash, text, author } = cast
       if (recastCount > MAX_RECAST_PER_USER) {
         console.log(
           `Skipping the rest of ${user.username}'s casts since recasted ${MAX_RECAST_PER_USER} times already.`
@@ -185,7 +185,7 @@ const recastNewUsers = async () => {
       if (timestamp < publishedAtThreshold) {
         continue // Skip if casted before the threshold
       }
-      if (_parentHashV2) {
+      if (parentHash) {
         continue // Skip replies
       }
       if (
@@ -198,10 +198,10 @@ const recastNewUsers = async () => {
         continue // Skip auth casts
       }
       if (APP_ENV === 'production') {
-        await warpcast.recast(_hashV2)
+        await warpcast.recast(hash)
         console.log(`Recasted @${author.username}: ${text}`)
       } else {
-        console.log(RECAST_PREFIX + author.username + '/' + _hashV2.slice(0, 8))
+        console.log(RECAST_PREFIX + author.username + '/' + hash.slice(0, 8))
 
         console.log(
           `[Test (not actually recasting)] @${author.username}: ${text}`
